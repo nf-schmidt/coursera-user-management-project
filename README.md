@@ -1,55 +1,53 @@
-# coursera-user-management-project
+# User Management API
 
-Debugging & Optimization Report: User Management API
+## 🚀 Features
 
-Issue: Data Integrity & Validation
-The Problem: The initial User model lacked validation. The API accepted requests with empty names or malformed email addresses (e.g., "bob" instead of "bob@email.com"), leading to "dirty data" entering the system.
+* **CRUD Operations:** Create, Read, Update, and Delete user records efficiently.
+* **JWT Authentication:** Secure endpoints using JSON Web Tokens (Bearer Auth).
+* **Middleware Pipeline:**
+    * **Request/Response Logging:** Audits all incoming traffic and outgoing responses.
+    * **Global Exception Handling:** Standardized error responses (RFC 7807) to prevent crashes.
+* **Thread-Safe Data:** Uses `ConcurrentDictionary` and `Interlocked` operations to handle simultaneous requests safely.
+* **Data Validation:** strict input validation using Data Annotations.
 
-Copilot's Identification: Analyzed the User class and flagged the absence of Data Annotations. Identified this as a high-severity risk for downstream business processes.
+---
 
-Resolution:
+## 🧪 Tutorial: How to Test the API
 
-Decorated the User model properties with [Required] and [StringLength].
+Since this API is secured with JWT (JSON Web Tokens), you cannot simply call the endpoints immediately. You must first "log in" to obtain a secure token.
 
-Applied the [EmailAddress] attribute to the Email property.
+Follow this step-by-step guide using the **Swagger UI**.
 
-Result: The API now automatically returns 400 Bad Request if the input does not meet the schema requirements, ensuring only valid data reaches the controller.
+### Step 1: Obtain an Access Token (Login)
 
-2. Issue: Concurrency & Thread Safety
-The Problem: The API used a static List<User> to simulate the database. Standard lists are not thread-safe. If multiple users (HR and IT departments) tried to add or delete users simultaneously, the application would crash with an InvalidOperationException.
+1.  Open the Swagger UI.
+2.  Expand the **`POST /api/Auth/login`** endpoint.
+3.  Click **Try it out**.
+4.  You can enter any credentials in the Request Body:
+    ```json
+    {
+      "username": "XXXX",
+      "password": "XXXX"
+    }
+    ```
+    *(Note: These are hardcoded for demonstration purposes).*
+5.  Click **Execute**.
+6.  Copy the long string inside the `"token"` field from the Response Body.
 
-Copilot's Identification: Reviewed the data structure in UsersController and identified a "Race Condition" risk.
+### Step 2: Authorize Your Session
 
-Resolution:
+1.  Scroll to the top of the Swagger page.
+2.  Click the **Authorize** button (padlock icon).
+3.  In the value box, type the word `Bearer`, followed by a space, and then paste your token.
+    * **Format:** `Bearer eyJhbGciOiJIUzI1Ni...`
+4.  Click **Authorize** and then **Close**.
+    * *You are now authenticated as an Admin.*
 
-Replaced List<User> with ConcurrentDictionary<int, User>.
+    ---
 
-Replaced standard increment logic with Interlocked.Increment for ID generation.
+## 📂 Project Structure
 
-Result: The API can now handle multiple simultaneous requests without crashing or corrupting the in-memory data store.
-
-3. Issue: Performance Bottlenecks (O(n) vs O(1))
-The Problem: The GetUser and DeleteUser endpoints relied on LINQ queries (e.g., _users.FirstOrDefault), which perform a linear search. As the user base grows, the lookup time increases linearly (O(n)).
-
-Copilot's Identification: Acted as a Database Architect to critique the "indexing strategy." Pointed out that scanning the entire list for an ID is inefficient.
-
-Resolution:
-
-Optimized the storage mechanism to use a Dictionary where the Key is the Id.
-
-Changed lookups to use .TryGetValue().
-
-Result: Lookups are now O(1) (constant time). Retrieving User #10,000 is now just as fast as retrieving User #1.
-
-4. Issue: Unhandled Exceptions
-The Problem: The original code had no safety net. If a database error or unexpected null reference occurred, the API would return a raw 500 error or simply terminate the connection, confusing the client.
-
-Copilot's Identification: Noted the lack of try-catch blocks around critical logic.
-
-Resolution:
-
-Wrapped all Controller actions in try-catch blocks.
-
-Implemented UseExceptionHandler in Program.cs (Global Exception Handling).
-
-Result: The API now gracefully catches errors and returns a standardized "Problem Details" JSON response, keeping the service running even when errors occur.
+* **Controllers/**: Handles incoming HTTP requests (`UsersController`, `AuthController`).
+* **Middleware/**: Custom pipeline components (`RequestResponseLogging`, `GlobalException`).
+* **Models/**: Data structures and validation rules (`User`, `LoginModel`).
+* **Program.cs**: Application entry point, service configuration, and middleware pipeline setup.
