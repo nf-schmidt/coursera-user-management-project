@@ -1,5 +1,7 @@
 # User Management API
 
+> **Note:** This project was developed as part of a Peer-Graded Assignment for the **Microsoft "Back-End Development with .NET"** course on Coursera.
+
 ## 🚀 Features
 
 * **CRUD Operations:** Create, Read, Update, and Delete user records efficiently.
@@ -23,14 +25,13 @@ Follow this step-by-step guide using the **Swagger UI**.
 1.  Open the Swagger UI.
 2.  Expand the **`POST /api/Auth/login`** endpoint.
 3.  Click **Try it out**.
-4.  You can enter any credentials in the Request Body:
+4.  You can enter any credentials in the Request Body like the following:
     ```json
     {
-      "username": "XXXX",
-      "password": "XXXX"
+      "username": "XXXXX",
+      "password": "XXXXX"
     }
     ```
-    *(Note: These are hardcoded for demonstration purposes).*
 5.  Click **Execute**.
 6.  Copy the long string inside the `"token"` field from the Response Body.
 
